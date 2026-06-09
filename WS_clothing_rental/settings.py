@@ -75,7 +75,11 @@ WSGI_APPLICATION = "WS_clothing_rental.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        'NAME': 'nat_dp_bd',
+        'USER': 'Nata',
+        'PASSWORD': 'qwerty',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
