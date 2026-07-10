@@ -17,7 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.urls import include
+from ads import views as ads_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", ads_views.home, name="home"),
+    path("admin/", include("django.contrib.auth.urls")),
+    path("users/", include("users.urls")),
+    path("ads/", include("ads.urls")),
 ]
