@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Объявления{% endblock title %}
+
+{% block content %}
+    <h2>Объявления</h2>
+
+    {% for ad in ads %}
+        <article>
+            <h3><a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a></h3>
+            <p>{{ ad.description }}</p>
+            <p>{{ ad.price }}</p>
+        </article>
+    {% empty %}
+        <p>Объявлений пока нет.</p>
+    {% endfor %}
+{% endblock content %}

@@ -1,27 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}{{ ad.title }}{% endblock title %}
+{% block title %}{{ ad.title }}{% endblock %}
 
 {% block content %}
     <h2>{{ ad.title }}</h2>
+
+    {% if ad.image %}
+        <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 400px; margin: 10px 0;">
+    {% else %}
+        <p>Фото не загружено</p>
+    {% endif %}
 
     <p><strong>Описание:</strong> {{ ad.description }}</p>
     <p><strong>Цена:</strong> {{ ad.price }}</p>
     <p><strong>Местоположение:</strong> {{ ad.location }}</p>
 
+    {% if ad.start_date and ad.end_date %}
+        <p><strong>Аренда:</strong> {{ ad.start_date }} — {{ ad.end_date }}</p>
+    {% endif %}
+
     <h3>Контакты</h3>
 
     {% if user.is_authenticated %}
-        <p><strong>Контакт:</strong> {{ ad.contact }}</p>
+        <p><strong>Контакт автора:</strong> {{ ad.contact }}</p>
+        <p><strong>Автор:</strong> {{ ad.author.username }}</p>
+
+        {% if ad.author == user %}
+            <p>
+                <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
+            </p>
+        {% endif %}
     {% else %}
         <p><em>Контакт доступен только авторизованным пользователям. <a href="{% url 'users:login' %}">Войти</a></em></p>
     {% endif %}
 
     <p><strong>Статус:</strong> {{ ad.status }}</p>
-
-    {% if user.is_authenticated and ad.author == user %}
-        <p>
-            <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
-        </p>
-    {% endif %}
-{% endblock content %}
+{% endblock %}

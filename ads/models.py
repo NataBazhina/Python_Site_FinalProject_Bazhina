@@ -25,6 +25,9 @@ class Ad(models.Model):
         on_delete=models.CASCADE,
         related_name="ads",
     )
+    start_date = models.DateField(null=True, blank=True, help_text="Дата начала аренды")
+    end_date = models.DateField(null=True, blank=True, help_text="Дата окончания аренды")
+    image = models.ImageField(null=True, blank=True, upload_to="ads_images/", help_text="Фото объявления")
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

@@ -5,9 +5,66 @@
 {% block content %}
     <h2>Создать объявление</h2>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.non_field_errors }}
+
+        <p>
+            <label>{{ form.title.label }}:</label>
+            {{ form.title }}
+            {{ form.title.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.description.label }}:</label>
+            {{ form.description }}
+            {{ form.description.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.price.label }}:</label>
+            {{ form.price }}
+            {{ form.price.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.location.label }}:</label>
+            {{ form.location }}
+            {{ form.location.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.contact.label }}:</label>
+            {{ form.contact }}
+            <small>Контактная информация автора (видна только авторизованным)</small>
+            {{ form.contact.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.start_date.label }}:</label>
+            {{ form.start_date }}
+            <small>Введите в формате YYYY-MM-DD (например 2026-07-15)</small>
+            {{ form.start_date.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.end_date.label }}:</label>
+            {{ form.end_date }}
+            <small>Введите в формате YYYY-MM-DD (например 2026-08-15)</small>
+            {{ form.end_date.errors }}
+        </p>
+
+        <p>
+            <label>{{ form.image.label }}:</label>
+            {{ form.image }}
+            <small>Фото объявления</small>
+            {{ form.image.errors }}
+        </p>
+
         <button type="submit">Сохранить</button>
     </form>
+
+    {% if form.errors %}
+        <p>Проверьте ошибки формы.</p>
+    {% endif %}
 {% endblock content %}
