@@ -1,17 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}Объявления{% endblock title %}
+{% block title %}Объявления{% endblock %}
 
 {% block content %}
-    <h2>Объявления</h2>
+<h1>Объявления</h1>
 
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Поиск по заголовку и описанию">
+    <input type="text" name="location" value="{{ location }}" placeholder="Местоположение">
+    <input type="number" name="price_from" value="{{ price_from }}" placeholder="Цена от">
+    <input type="number" name="price_to" value="{{ price_to }}" placeholder="Цена до">
+    <button type="submit">Найти</button>
+</form>
+
+{% if ads %}
     {% for ad in ads %}
-        <article>
-            <h3><a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a></h3>
-            <p>{{ ad.description }}</p>
-            <p>{{ ad.price }}</p>
-        </article>
-    {% empty %}
-        <p>Объявлений пока нет.</p>
+        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+            <h2>
+                <a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a>
+            </h2>
+
+            {% if ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 250px;">
+            {% endif %}
+
+            <p><strong>Описание:</strong> {{ ad.description }}</p>
+            <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+            <p><strong>Цена:</strong> {{ ad.price }}</p>
+        </div>
     {% endfor %}
-{% endblock content %}
+{% else %}
+    <p>Объявления не найдены.</p>
+{% endif %}
+{% endblock %}

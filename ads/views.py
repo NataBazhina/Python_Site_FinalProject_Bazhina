@@ -3,6 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, UpdateView, ListView
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 from .models import Ad
 from .forms import AdForm
@@ -10,12 +12,72 @@ from .forms import AdForm
 
 def ad_list(request):
     ads = Ad.objects.all()
-    return render(request, "ads/ad_list.html", {"ads": ads})
+
+    q = request.GET.get("q", "").strip()
+    location = request.GET.get("location", "").strip()
+    price_from = request.GET.get("price_from", "").strip()
+    price_to = request.GET.get("price_to", "").strip()
+
+    if q:
+        ads = ads.filter(
+            Q(title__icontains=q) | Q(description__icontains=q)
+        )
+
+    if location:
+        ads = ads.filter(location__icontains=location)
+
+    if price_from:
+        ads = ads.filter(price__gte=price_from)
+
+    if price_to:
+        ads = ads.filter(price__lte=price_to)
+
+    return render(
+        request,
+        "ads/ad_list.html",
+        {
+            "ads": ads,
+            "q": q,
+            "location": location,
+            "price_from": price_from,
+            "price_to": price_to,
+        },
+    )
 
 
 def home(request):
     ads = Ad.objects.all()
-    return render(request, "ads/home.html", {"ads": ads})
+
+    q = request.GET.get("q", "").strip()
+    location = request.GET.get("location", "").strip()
+    price_from = request.GET.get("price_from", "").strip()
+    price_to = request.GET.get("price_to", "").strip()
+
+    if q:
+        ads = ads.filter(
+            Q(title__icontains=q) | Q(description__icontains=q)
+        )
+
+    if location:
+        ads = ads.filter(location__icontains=location)
+
+    if price_from:
+        ads = ads.filter(price__gte=price_from)
+
+    if price_to:
+        ads = ads.filter(price__lte=price_to)
+
+    return render(
+        request,
+        "ads/home.html",
+        {
+            "ads": ads,
+            "q": q,
+            "location": location,
+            "price_from": price_from,
+            "price_to": price_to,
+        },
+    )
 
 
 def ad_detail(request, pk):
@@ -81,3 +143,39 @@ class AdMyAdsView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Ad.objects.filter(author=self.request.user)
+
+
+@login_required
+def my_ads(request):
+    ads = Ad.objects.filter(author=request.user)
+
+    q = request.GET.get("q", "").strip()
+    location = request.GET.get("location", "").strip()
+    price_from = request.GET.get("price_from", "").strip()
+    price_to = request.GET.get("price_to", "").strip()
+
+    if q:
+        ads = ads.filter(
+            Q(title__icontains=q) | Q(description__icontains=q)
+        )
+
+    if location:
+        ads = ads.filter(location__icontains=location)
+
+    if price_from:
+        ads = ads.filter(price__gte=price_from)
+
+    if price_to:
+        ads = ads.filter(price__lte=price_to)
+
+    return render(
+        request,
+        "ads/my_ads.html",
+        {
+            "ads": ads,
+            "q": q,
+            "location": location,
+            "price_from": price_from,
+            "price_to": price_to,
+        },
+    )

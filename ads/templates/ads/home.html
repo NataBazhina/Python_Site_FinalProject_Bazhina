@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}Главная{% endblock title %}
+{% block title %}Главная{% endblock %}
 
 {% block content %}
-    <h2>Все объявления</h2>
+<h1>Объявления</h1>
 
-    {% if ads %}
-        {% for ad in ads %}
-            <article>
-                <h3><a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a></h3>
-                <p>{{ ad.description }}</p>
-                <p><strong>Цена:</strong> {{ ad.price }}</p>
-                <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Поиск по заголовку и описанию">
+    <input type="text" name="location" value="{{ location }}" placeholder="Местоположение">
+    <input type="number" name="price_from" value="{{ price_from }}" placeholder="Цена от">
+    <input type="number" name="price_to" value="{{ price_to }}" placeholder="Цена до">
+    <button type="submit">Найти</button>
+</form>
 
-                {% if ad.start_date and ad.end_date %}
-                    <p><strong>Аренда:</strong> {{ ad.start_date }} — {{ ad.end_date }}</p>
-                {% endif %}
+{% if ads %}
+    {% for ad in ads %}
+        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+            <h2>
+                <a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a>
+            </h2>
 
-                <hr>
-            </article>
-        {% endfor %}
-    {% else %}
-        <p>Объявлений пока нет.</p>
-    {% endif %}
-{% endblock content %}
+            {% if ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 250px;">
+            {% endif %}
+
+            <p><strong>Описание:</strong> {{ ad.description }}</p>
+            <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+            <p><strong>Цена:</strong> {{ ad.price }}</p>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Объявления не найдены.</p>
+{% endif %}
+{% endblock %}

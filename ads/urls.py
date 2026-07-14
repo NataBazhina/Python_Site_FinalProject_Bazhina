@@ -13,4 +13,5 @@ urlpatterns = [
     path("", AdListView.as_view(), name="list"),
     path("home/", home, name="home"),
     path("my/", AdMyAdsView.as_view(), name="my"),
+    path("ads/", views.ad_list, name="list")
 ]
