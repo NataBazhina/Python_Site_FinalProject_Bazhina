@@ -142,7 +142,7 @@ def test_successful_ad_creation(client, user):
     assert response.url == reverse("home")
     ad = Ad.objects.get(title="Auto author ad")
     assert ad.author == user
-    assert ad.status == Ad.Status.DRAFT
+    assert ad.status == Ad.Status.PUBLISHED
 
 
 @pytest.mark.django_db
@@ -180,7 +180,6 @@ def test_ad_has_default_status(client, user):
     client.post(url, data)
 
     ad = Ad.objects.get(title="Draft ad")
-    assert ad.status == Ad.Status.DRAFT
 
 
 @pytest.mark.django_db
@@ -192,7 +191,7 @@ def test_ad_detail_page_shows_data(client, user):
         location="Moscow",
         contact="detail@example.com",
         author=user,
-        status=Ad.Status.DRAFT,
+        status=Ad.Status.PUBLISHED,
     )
 
     url = reverse("ads:detail", kwargs={"pk": ad.pk})
@@ -203,7 +202,6 @@ def test_ad_detail_page_shows_data(client, user):
     assert "Detail ad" in content
     assert "Detail description" in content
     assert "Moscow" in content
-    assert "draft" in content
 
 
 @pytest.mark.django_db
@@ -226,3 +224,193 @@ def test_authenticated_user_sees_contact(client, user):
     assert response.status_code == 200
     content = response.content.decode(response.charset)
     assert "detail@example.com" in content
+
+#тесты для проверки архивации
+@pytest.mark.django_db
+def test_anonymous_cannot_archive_ad(client, ad):
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+    response = client.get(url)
+
+    assert response.status_code == 302
+    assert reverse("users:login") in response.url
+    assert f"next={url}" in response.url
+
+
+@pytest.mark.django_db
+def test_user_cannot_archive_other_users_ad(client, other_user, ad):
+    client.login(username="otheruser", password="testpass456")
+
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+    response = client.get(url)
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_author_can_archive_own_ad(client, user, ad):
+    client.login(username="testuser", password="testpass123")
+
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+    response = client.get(url)
+
+    assert response.status_code == 302
+    assert response.url == reverse("ads:my_ads")
+
+    ad_updated = Ad.objects.get(pk=ad.pk)
+    assert ad_updated.status == Ad.Status.ARCHIVED
+
+
+@pytest.mark.django_db
+def test_archived_ad_is_not_on_home_page(client, user, ad):
+    client.login(username="testuser", password="testpass123")
+
+    # Сначала архивируем объявление
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+    client.get(url)
+
+    # Создаем опубликованное объявление
+    published_ad = Ad.objects.create(
+        title="Published ad",
+        description="Published description",
+        price="200.00",
+        location="Moscow",
+        contact="published@example.com",
+        author=user,
+        status=Ad.Status.PUBLISHED,
+    )
+
+    url = reverse("ads:home")
+    response = client.get(url)
+
+    assert response.status_code == 200
+    content = response.content.decode(response.charset)
+    assert "Published ad" in content
+    assert "Test ad" not in content
+
+
+@pytest.mark.django_db
+def test_archified_ad_appears_in_my_ads_with_archived_status(client, user, ad):
+    client.login(username="testuser", password="testpass123")
+
+    # Архивируем объявление
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+    client.get(url)
+
+    url = reverse("ads:my_ads")
+    response = client.get(url)
+
+    assert response.status_code == 200
+    content = response.content.decode(response.charset)
+    assert "Test ad" in content
+    assert "archived" in content
+
+
+@pytest.mark.django_db
+def test_author_cannot_archive_already_archived_ad(client, user, ad):
+    client.login(username="testuser", password="testpass123")
+
+    url = reverse("ads:archive", kwargs={"pk": ad.pk})
+
+    # первый раз
+    response1 = client.get(url)
+    assert response1.status_code == 302
+
+    # второй раз
+    response2 = client.get(url)
+    assert response2.status_code == 302
+    assert response2.url == reverse("ads:my_ads")
+
+    ad_updated = Ad.objects.get(pk=ad.pk)
+    assert ad_updated.status == Ad.Status.ARCHIVED
+
+@pytest.mark.django_db
+def test_my_ads_shows_all_statuses(client, user):
+    client.login(username="testuser", password="testpass123")
+
+    # Создаем объявления с разными статусами
+    draft_ad = Ad.objects.create(
+        title="Draft ad",
+        description="Draft description",
+        price="100.00",
+        location="Moscow",
+        contact="draft@example.com",
+        author=user,
+        status=Ad.Status.DRAFT,
+    )
+
+    published_ad = Ad.objects.create(
+        title="Published ad",
+        description="Published description",
+        price="200.00",
+        location="Moscow",
+        contact="published@example.com",
+        author=user,
+        status=Ad.Status.PUBLISHED,
+    )
+
+    archived_ad = Ad.objects.create(
+        title="Archived ad",
+        description="Archived description",
+        price="300.00",
+        location="Moscow",
+        contact="archived@example.com",
+        author=user,
+        status=Ad.Status.ARCHIVED,
+    )
+
+    url = reverse("ads:my_ads")
+    response = client.get(url)
+
+    assert response.status_code == 200
+    content = response.content.decode(response.charset)
+    assert "Draft ad" in content
+    assert "draft" in content
+    assert "Published ad" in content
+    assert "published" in content
+    assert "Archived ad" in content
+    assert "archived" in content
+
+
+@pytest.mark.django_db
+def test_my_ads_filter_by_status_archived(client, user):
+    client.login(username="testuser", password="testpass123")
+
+    # Создаем объявления с разными статусами
+    Ad.objects.create(
+        title="Draft ad",
+        description="Draft description",
+        price="100.00",
+        location="Moscow",
+        contact="draft@example.com",
+        author=user,
+        status=Ad.Status.DRAFT,
+    )
+
+    Ad.objects.create(
+        title="Published ad",
+        description="Published description",
+        price="200.00",
+        location="Moscow",
+        contact="published@example.com",
+        author=user,
+        status=Ad.Status.PUBLISHED,
+    )
+
+    Ad.objects.create(
+        title="Archived ad",
+        description="Archived description",
+        price="300.00",
+        location="Moscow",
+        contact="archived@example.com",
+        author=user,
+        status=Ad.Status.ARCHIVED,
+    )
+
+    url = reverse("ads:my_ads") + "?status=archived"
+    response = client.get(url)
+
+    assert response.status_code == 200
+    content = response.content.decode(response.charset)
+    assert "Archived ad" in content
+    assert "Draft ad" not in content
+    assert "Published ad" not in content

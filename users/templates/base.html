@@ -10,7 +10,7 @@
 
         {% if user.is_authenticated %}
             <a href="{% url 'ads:create' %}">Создать объявление</a>
-            <a href="{% url 'ads:my' %}">Мои объявления</a>
+            <a href="{% url 'ads:my_ads' %}">Мои объявления</a>
             <form action="{% url 'users:logout' %}" method="post" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit">Выйти</button>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Архивировать объявление{% endblock %}
+
+{% block content %}
+<h1>Архивировать объявление</h1>
+
+<p>Вы действительно хотите архивировать: <strong>{{ ad.title }}</strong>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Архивировать</button>
+    <a href="{% url 'ads:detail' pk=ad.pk %}">Отмена</a>
+</form>
+{% endblock %}

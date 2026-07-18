@@ -28,6 +28,7 @@
         {% if ad.author == user %}
             <p>
                 <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
+                <a href="{% url 'ads:archive' pk=ad.pk %}">Архивировать</a>
             </p>
         {% endif %}
     {% else %}

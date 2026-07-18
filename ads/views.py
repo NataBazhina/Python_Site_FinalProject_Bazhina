@@ -1,10 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, UpdateView, ListView
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 
 from .models import Ad
 from .forms import AdForm
@@ -46,7 +47,7 @@ def ad_list(request):
 
 
 def home(request):
-    ads = Ad.objects.all()
+    ads = Ad.objects.filter(status=Ad.Status.PUBLISHED)
 
     q = request.GET.get("q", "").strip()
     location = request.GET.get("location", "").strip()
@@ -149,6 +150,10 @@ class AdMyAdsView(LoginRequiredMixin, ListView):
 def my_ads(request):
     ads = Ad.objects.filter(author=request.user)
 
+    status_filter = request.GET.get("status", "").strip()
+    if status_filter:
+        ads = ads.filter(status=status_filter)
+
     q = request.GET.get("q", "").strip()
     location = request.GET.get("location", "").strip()
     price_from = request.GET.get("price_from", "").strip()
@@ -177,5 +182,43 @@ def my_ads(request):
             "location": location,
             "price_from": price_from,
             "price_to": price_to,
+            "status_filter": status_filter,
         },
     )
+
+
+@login_required
+def archive_ad(request, pk):
+    ad = get_object_or_404(Ad, pk=pk)
+
+    # запрет на архивацию чужих объявлений
+    if ad.author != request.user:
+        return HttpResponseForbidden("Недостаточно прав для архивации этого объявления")
+
+    # если ещё не архивировано — архивируем
+    if ad.status != Ad.Status.ARCHIVED:
+        ad.status = Ad.Status.ARCHIVED
+        ad.save()
+
+    # после архивации/повторной попытки — всегда редирект в "Мои объявления"
+    return redirect("ads:my_ads")
+
+
+@login_required
+def ad_edit(request, pk):
+    ad = get_object_or_404(Ad, pk=pk)
+
+    if ad.author != request.user:
+        return render(request, "ads/error.html", {
+            "message": "Вы не можете редактировать чужие объявления."
+        })
+
+    if request.method == "POST":
+        form = AdForm(request.POST, request.FILES, instance=ad)
+        if form.is_valid():
+            ad = form.save()
+            return redirect("ads:detail", pk=ad.pk)
+    else:
+        form = AdForm(instance=ad)
+
+    return render(request, "ads/ad_edit.html", {"form": form, "ad": ad})
