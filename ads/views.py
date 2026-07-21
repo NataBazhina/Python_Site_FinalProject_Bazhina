@@ -222,3 +222,19 @@ def ad_edit(request, pk):
         form = AdForm(instance=ad)
 
     return render(request, "ads/ad_edit.html", {"form": form, "ad": ad})
+
+
+@login_required
+def ad_create(request):
+    if request.method == "POST":
+        form = AdForm(request.POST, request.FILES)
+        if form.is_valid():
+            ad = form.save(commit=False)
+            ad.author = request.user
+            ad.status = Ad.Status.PENDING
+            ad.save()
+            return redirect("home")
+    else:
+        form = AdForm()
+
+    return render(request, "ads/ad_create.html", {"form": form})

@@ -142,7 +142,7 @@ def test_successful_ad_creation(client, user):
     assert response.url == reverse("home")
     ad = Ad.objects.get(title="Auto author ad")
     assert ad.author == user
-    assert ad.status == Ad.Status.PUBLISHED
+    assert ad.status == Ad.Status.PENDING
 
 
 @pytest.mark.django_db

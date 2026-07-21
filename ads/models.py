@@ -31,7 +31,7 @@ class Ad(models.Model):
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
-        default=Status.PUBLISHED,
+        default=Status.PENDING,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
