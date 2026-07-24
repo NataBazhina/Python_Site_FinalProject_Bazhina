@@ -3,37 +3,94 @@
 {% block title %}{{ ad.title }}{% endblock %}
 
 {% block content %}
-    <h2>{{ ad.title }}</h2>
+<h2>{{ ad.title }}</h2>
 
-    {% if ad.image %}
-        <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 400px; margin: 10px 0;">
-    {% else %}
-        <p>Фото не загружено</p>
+{% if ad.image %}
+    <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 400px; margin: 10px 0;">
+{% else %}
+    <p>Фото не загружено</p>
+{% endif %}
+
+<p><strong>Описание:</strong> {{ ad.description }}</p>
+<p><strong>Цена:</strong> {{ ad.price }}</p>
+<p><strong>Местоположение:</strong> {{ ad.location }}</p>
+
+{% if ad.start_date and ad.end_date %}
+    <p><strong>Аренда:</strong> {{ ad.start_date }} — {{ ad.end_date }}</p>
+{% endif %}
+
+<p><strong>Статус:</strong> {{ ad.status }}</p>
+
+<h3>Контакты</h3>
+
+{% if user.is_authenticated %}
+    <p><strong>Контакт автора:</strong> {{ ad.contact }}</p>
+    <p><strong>Автор:</strong> {{ ad.author.username }}</p>
+
+    {% if ad.author == user %}
+        <p>
+            <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
+            <a href="{% url 'ads:archive' pk=ad.pk %}">Архивировать</a>
+        </p>
     {% endif %}
+{% else %}
+    <p>
+        <em>Контакт доступен только авторизованным пользователям.
+        <a href="{% url 'users:login' %}">Войти</a></em>
+    </p>
+{% endif %}
 
-    <p><strong>Описание:</strong> {{ ad.description }}</p>
-    <p><strong>Цена:</strong> {{ ad.price }}</p>
-    <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+<hr>
 
-    {% if ad.start_date and ad.end_date %}
-        <p><strong>Аренда:</strong> {{ ad.start_date }} — {{ ad.end_date }}</p>
-    {% endif %}
+<h3>Отзывы</h3>
 
-    <h3>Контакты</h3>
+{% if reviews %}
+    {% for review in reviews %}
+        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd;">
+            <p><strong>{{ review.author }}</strong></p>
+            <p>Оценка: {{ review.rating }}/5</p>
+            <p>{{ review.text }}</p>
+            <p><small>{{ review.created_at }}</small></p>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Пока нет отзывов.</p>
+{% endif %}
 
-    {% if user.is_authenticated %}
-        <p><strong>Контакт автора:</strong> {{ ad.contact }}</p>
-        <p><strong>Автор:</strong> {{ ad.author.username }}</p>
+<hr>
 
-        {% if ad.author == user %}
+{% if user.is_authenticated %}
+    {% if can_review %}
+        <h3>Оставить отзыв</h3>
+        <form method="post" action="{% url 'reviews:add_review' pk=ad.pk %}">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
             <p>
-                <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
-                <a href="{% url 'ads:archive' pk=ad.pk %}">Архивировать</a>
+                {{ form.text.label_tag }}
+                {{ form.text }}
+                {{ form.text.errors }}
             </p>
-        {% endif %}
+
+            <p>
+                {{ form.rating.label_tag }}
+                {{ form.rating }}
+                {{ form.rating.errors }}
+            </p>
+
+            <button type="submit">Отправить отзыв</button>
+        </form>
     {% else %}
-        <p><em>Контакт доступен только авторизованным пользователям. <a href="{% url 'users:login' %}">Войти</a></em></p>
+        <p><em>Вы сможете оставить отзыв только после завершения аренды/сделки.</em></p>
+    {% endif %}
+{% else %}
+    <p><em>Чтобы оставить отзыв, нужно войти в систему.</em></p>
+{% endif %}
+
+    {% if user.is_authenticated and user != ad.author %}
+        <form method="get" action="{% url 'rentals:create' pk=ad.pk %}">
+            <button type="submit">Забронировать</button>
+        </form>
     {% endif %}
 
-    <p><strong>Статус:</strong> {{ ad.status }}</p>
 {% endblock %}

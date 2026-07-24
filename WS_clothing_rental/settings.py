@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'users',
     'reviews',
     'moderation',
+    'rentals',
 ]
 
 LOGIN_URL = "users:login"

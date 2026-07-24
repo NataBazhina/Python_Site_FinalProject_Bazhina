@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Мои брони{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Мои бронирования</h1>
+
+    {% if rentals %}
+        <ul>
+            {% for rental in rentals %}
+                <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+                    <strong>{{ rental.ad.title }}</strong><br>
+                    Даты: {{ rental.start_date }} — {{ rental.end_date }}<br>
+                    Статус: {{ rental.get_status_display }}
+
+                    {% if rental.status == "completed" %}
+                        <div style="margin-top: 8px;">
+                            <a href="{% url 'rentals:add_review' rental_id=rental.id %}">
+                                Оставить отзыв
+                            </a>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У вас пока нет бронирований.</p>
+    {% endif %}
+</div>
+{% endblock %}

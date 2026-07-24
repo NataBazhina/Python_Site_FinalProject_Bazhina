@@ -7,43 +7,28 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
+from reviews.forms import ReviewForm
 from .models import Ad
 from .forms import AdForm
+from reviews.models import Review
 
 
 def ad_list(request):
     ads = Ad.objects.all()
 
-    q = request.GET.get("q", "").strip()
-    location = request.GET.get("location", "").strip()
-    price_from = request.GET.get("price_from", "").strip()
-    price_to = request.GET.get("price_to", "").strip()
+    for ad in ads:
+        active_rental = Rental.objects.filter(
+            ad=ad,
+            status=Rental.Status.APPROVED,
+            start_date__lte=timezone.now().date(),
+            end_date__gte=timezone.now().date(),
+        ).first()
 
-    if q:
-        ads = ads.filter(
-            Q(title__icontains=q) | Q(description__icontains=q)
-        )
+        ad.is_booked = active_rental is not None
+        ad.booked_from = active_rental.start_date if active_rental else None
+        ad.booked_to = active_rental.end_date if active_rental else None
 
-    if location:
-        ads = ads.filter(location__icontains=location)
-
-    if price_from:
-        ads = ads.filter(price__gte=price_from)
-
-    if price_to:
-        ads = ads.filter(price__lte=price_to)
-
-    return render(
-        request,
-        "ads/ad_list.html",
-        {
-            "ads": ads,
-            "q": q,
-            "location": location,
-            "price_from": price_from,
-            "price_to": price_to,
-        },
-    )
+    return render(request, "ads/ad_list.html", {"ads": ads})
 
 
 def home(request):
@@ -83,7 +68,27 @@ def home(request):
 
 def ad_detail(request, pk):
     ad = get_object_or_404(Ad, pk=pk)
-    return render(request, "ads/ad_detail.html", {"ad": ad})
+    can_review = False
+
+    if request.user.is_authenticated:
+        can_review = Rental.objects.filter(
+            ad=ad,
+            user=request.user,
+            status=Rental.Status.COMPLETED,
+        ).exists()
+
+    reviews = ad.reviews.select_related("author").all()
+
+    return render(
+        request,
+        "ads/ad_detail.html",
+        {
+            "ad": ad,
+            "reviews": reviews,
+            "form": ReviewForm(),
+            "can_review": can_review,
+        },
+    )
 
 
 class AdCreateView(LoginRequiredMixin, CreateView):
@@ -107,6 +112,10 @@ class AdDetailView(DetailView):
     template_name = "ads/ad_detail.html"
     context_object_name = "ad"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["reviews"] = Review.objects.filter(ad=self.object).select_related("author")
+        return context
 
 class AdUpdateView(LoginRequiredMixin, UpdateView):
     model = Ad
