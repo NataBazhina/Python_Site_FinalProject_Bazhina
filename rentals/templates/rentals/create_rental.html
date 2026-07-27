@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Забронировать{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Забронировать: {{ ad.title }}</h2>
+
+    {% if ad.image %}
+        <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 300px; margin-bottom: 20px;">
+    {% endif %}
+
+    <p><strong>Цена:</strong> {{ ad.price }} ₽</p>
+    <p><strong>Описание:</strong> {{ ad.description }}</p>
+
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.start_date.id_for_label }}">Дата начала бронирования</label><br>
+            {{ form.start_date }}
+            {{ form.start_date.errors }}
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.end_date.id_for_label }}">Дата окончания бронирования</label><br>
+            {{ form.end_date }}
+            {{ form.end_date.errors }}
+        </div>
+
+        <button type="submit">Забронировать</button>
+    </form>
+</div>
+{% endblock %}

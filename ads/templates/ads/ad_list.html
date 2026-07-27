@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Объявления{% endblock %}
+
+{% block content %}
+<h1>Объявления</h1>
+
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Поиск по заголовку и описанию">
+    <input type="text" name="location" value="{{ location }}" placeholder="Местоположение">
+    <input type="number" name="price_from" value="{{ price_from }}" placeholder="Цена от">
+    <input type="number" name="price_to" value="{{ price_to }}" placeholder="Цена до">
+    <button type="submit">Найти</button>
+</form>
+
+{% if ads %}
+    {% for ad in ads %}
+        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+            <h2>
+                <a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a>
+            </h2>
+
+            {% if ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 250px;">
+            {% endif %}
+
+            <p><strong>Описание:</strong> {{ ad.description }}</p>
+            <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+            <p><strong>Цена:</strong> {{ ad.price }}</p>
+
+            {% if ad.is_booked %}
+                <p style="color: red;">
+                    <strong>Статус:</strong> Забронировано
+                    {% if ad.booked_from and ad.booked_to %}
+                        с {{ ad.booked_from }} по {{ ad.booked_to }}
+                    {% endif %}
+                </p>
+            {% else %}
+                <p style="color: green;"><strong>Статус:</strong> Свободно</p>
+                <a href="{% url 'rentals:create' pk=ad.pk %}">Забронировать</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Объявления не найдены.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Мои объявления{% endblock %}
+
+{% block content %}
+<h1>Мои объявления</h1>
+
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Поиск по заголовку и описанию">
+    <input type="text" name="location" value="{{ location }}" placeholder="Местоположение">
+    <input type="number" name="price_from" value="{{ price_from }}" placeholder="Цена от">
+    <input type="number" name="price_to" value="{{ price_to }}" placeholder="Цена до">
+
+    <select name="status">
+        <option value="">Все статусы</option>
+        {% if status_filter == "published" %}
+            <option value="published" selected>Published</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+        {% elif status_filter == "draft" %}
+            <option value="published">Published</option>
+            <option value="draft" selected>Draft</option>
+            <option value="archived">Archived</option>
+        {% elif status_filter == "archived" %}
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="archived" selected>Archived</option>
+        {% else %}
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+        {% endif %}
+    </select>
+
+    <button type="submit">Найти</button>
+</form>
+
+{% if ads %}
+    {% for ad in ads %}
+        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+            <h2>
+                <a href="{% url 'ads:detail' pk=ad.pk %}">{{ ad.title }}</a>
+            </h2>
+
+            <p><strong>Статус:</strong>
+                {% if ad.status == "published" %}
+                    Published
+                {% elif ad.status == "draft" %}
+                    Draft
+                {% elif ad.status == "archived" %}
+                    Archived
+                {% else %}
+                    {{ ad.status }}
+                {% endif %}
+            </p>
+
+            {% if ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 250px;">
+            {% endif %}
+
+            <p><strong>Описание:</strong> {{ ad.description }}</p>
+            <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+            <p><strong>Цена:</strong> {{ ad.price }}</p>
+
+            {% if user.is_authenticated and ad.author == user %}
+                <p>
+                    <a href="{% url 'ads:edit' pk=ad.pk %}">Редактировать</a>
+                    {% if ad.status != "archived" %}
+                        <a href="{% url 'ads:archive' pk=ad.pk %}">Архивировать</a>
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Объявления не найдены.</p>
+{% endif %}
+{% endblock %}

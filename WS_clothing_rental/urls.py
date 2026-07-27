@@ -17,7 +17,19 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.urls import include
+from ads import views as ads_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", ads_views.home, name="home"),
+    path("admin/", include("django.contrib.auth.urls")),
+    path("users/", include("users.urls")),
+    path("ads/", include("ads.urls")),
+    path("rentals/", include("rentals.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
