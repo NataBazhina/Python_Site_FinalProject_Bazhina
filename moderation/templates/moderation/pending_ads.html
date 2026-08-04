@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Модерация объявлений{% endblock %}
+
+{% block content %}
+<h1>Объявления на модерации</h1>
+
+{% if ads %}
+    {% for ad in ads %}
+        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+            <h2>{{ ad.title }}</h2>
+            {% if ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}" style="max-width: 250px;">
+            {% endif %}
+            <p><strong>Описание:</strong> {{ ad.description }}</p>
+            <p><strong>Местоположение:</strong> {{ ad.location }}</p>
+            <p><strong>Цена:</strong> {{ ad.price }}</p>
+
+            <a href="{% url 'moderation:approve_ad' ad.pk %}">Одобрить</a>
+            |
+            <a href="{% url 'moderation:reject_ad' ad.pk %}">Отклонить</a>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Нет объявлений на модерации.</p>
+{% endif %}
+{% endblock %}

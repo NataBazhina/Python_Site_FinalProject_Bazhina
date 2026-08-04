@@ -6,11 +6,13 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.utils import timezone
 
 from reviews.forms import ReviewForm
 from .models import Ad
 from .forms import AdForm
 from reviews.models import Review
+from rentals.models import Rental
 
 
 def ad_list(request):
