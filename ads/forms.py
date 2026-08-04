@@ -22,12 +22,12 @@ class AdForm(forms.ModelForm):
         model = Ad
         fields = ["title", "description", "price", "location", "contact", "start_date", "end_date", "image"]
 
-        def clean(self):
-            super().clean()
-            start = self.cleaned_data.get("start_date")
-            end = self.cleaned_data.get("end_date")
+    def clean(self):
+        super().clean()
+        start = self.cleaned_data.get("start_date")
+        end = self.cleaned_data.get("end_date")
 
-            if start and end and start > end:
-                raise forms.ValidationError("Дата начала не может быть позже даты окончания.")
+        if start and end and start > end:
+            raise forms.ValidationError("Дата начала не может быть позже даты окончания.")
 
-            return self.cleaned_data
+        return self.cleaned_data

@@ -1,0 +1,28 @@
+# env
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.log
+*.coverage
+.coverage
+
+# Django
+media/
+ads_images/
+db.sqlite3
+nat_dp_bd
+
+# Virtual env
+venv/
+myenv/
+.envrc
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

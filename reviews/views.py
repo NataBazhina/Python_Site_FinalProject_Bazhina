@@ -1,8 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponseForbidden
+
 from ads.models import Ad
 from reviews.forms import ReviewForm
 from reviews.models import Review
+from rentals.models import Rental
 
 
 @login_required
